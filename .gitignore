@@ -1,15 +1,41 @@
-# Node
-frontend/node_modules
-frontend/dist
+# =========================
+# FRONTEND (React/Vite)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 
-# Python
-backend/venv
-__pycache__/
-*.pyc
+# =========================
+# BACKEND (Spring Boot)
+# =========================
+backend/target/
+backend/.mvn/
+backend/**/*.class
 
-# Env files
+# IntelliJ
+backend/.idea/
+backend/*.iml
+
+# VS Code
+.vscode/
+
+# Maven Wrapper Logs
+*.log
+
+# =========================
+# ENV / SECRETS
+# =========================
 .env
+application-local.properties
 
-# OS
+# =========================
+# OS FILES
+# =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# CACHE / TEMP
+# =========================
+__pycache__/
+*.pyc
