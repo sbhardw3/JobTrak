@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { getAnalyses } from '../api/aiApi.js'
 import { getApplications } from '../api/applicationApi.js'
 import { getResumes } from '../api/resumeApi.js'
 import AppShell from '../components/AppShell.jsx'
@@ -7,7 +8,7 @@ import { useAuth } from '../hooks/useAuth.js'
 
 function DashboardPage() {
   const { user } = useAuth()
-  const [metrics, setMetrics] = useState({ resumes: 0, applications: 0, active: 0 })
+  const [metrics, setMetrics] = useState({ resumes: 0, applications: 0, active: 0, analyses: 0 })
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -15,13 +16,22 @@ function DashboardPage() {
 
     async function loadMetrics() {
       try {
-        const [resumes, applications] = await Promise.all([getResumes(), getApplications()])
+        const [resumes, applications, analyses] = await Promise.all([
+          getResumes(),
+          getApplications(),
+          getAnalyses(),
+        ])
         const active = applications.filter(
           (application) => !['REJECTED', 'OFFER', 'GHOSTED'].includes(application.status),
         ).length
 
         if (isMounted) {
-          setMetrics({ resumes: resumes.length, applications: applications.length, active })
+          setMetrics({
+            resumes: resumes.length,
+            applications: applications.length,
+            active,
+            analyses: analyses.length,
+          })
         }
       } catch {
         if (isMounted) {
@@ -64,6 +74,11 @@ function DashboardPage() {
           <p className="metric-label">Active</p>
           <h2>{metrics.active}</h2>
           <Link to="/applications">View tracker</Link>
+        </article>
+        <article>
+          <p className="metric-label">AI analyses</p>
+          <h2>{metrics.analyses}</h2>
+          <Link to="/ai-analysis">Run analysis</Link>
         </article>
       </section>
     </AppShell>

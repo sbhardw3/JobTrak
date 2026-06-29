@@ -23,6 +23,7 @@ function AppShell({ eyebrow, title, children }) {
         <NavLink to="/dashboard">Dashboard</NavLink>
         <NavLink to="/resumes">Resumes</NavLink>
         <NavLink to="/applications">Applications</NavLink>
+        <NavLink to="/ai-analysis">AI Analysis</NavLink>
       </nav>
 
       {children}

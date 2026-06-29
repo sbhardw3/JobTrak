@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { useAuth } from './hooks/useAuth.js'
+import AiAnalysisPage from './pages/AiAnalysisPage.jsx'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -78,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ApplicationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-analysis"
+          element={
+            <ProtectedRoute>
+              <AiAnalysisPage />
             </ProtectedRoute>
           }
         />
