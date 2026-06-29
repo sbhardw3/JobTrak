@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { useAuth } from './hooks/useAuth.js'
+import ApplicationsPage from './pages/ApplicationsPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import ResumesPage from './pages/ResumesPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
 import './App.css'
 
@@ -60,6 +62,22 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resumes"
+          element={
+            <ProtectedRoute>
+              <ResumesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/applications"
+          element={
+            <ProtectedRoute>
+              <ApplicationsPage />
             </ProtectedRoute>
           }
         />

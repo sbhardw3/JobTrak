@@ -1,20 +1,44 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { getApplications } from '../api/applicationApi.js'
+import { getResumes } from '../api/resumeApi.js'
+import AppShell from '../components/AppShell.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 
 function DashboardPage() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const [metrics, setMetrics] = useState({ resumes: 0, applications: 0, active: 0 })
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadMetrics() {
+      try {
+        const [resumes, applications] = await Promise.all([getResumes(), getApplications()])
+        const active = applications.filter(
+          (application) => !['REJECTED', 'OFFER', 'GHOSTED'].includes(application.status),
+        ).length
+
+        if (isMounted) {
+          setMetrics({ resumes: resumes.length, applications: applications.length, active })
+        }
+      } catch {
+        if (isMounted) {
+          setError('Dashboard data could not be loaded.')
+        }
+      }
+    }
+
+    loadMetrics()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   return (
-    <main className="dashboard-page">
-      <header className="dashboard-header">
-        <div>
-          <p className="eyebrow">JobTrak</p>
-          <h1>Dashboard</h1>
-        </div>
-        <button className="secondary-button" onClick={logout} type="button">
-          Log out
-        </button>
-      </header>
-
+    <AppShell eyebrow="JobTrak" title="Dashboard">
       <section className="welcome-band">
         <div>
           <h2>Welcome, {user?.name}</h2>
@@ -23,24 +47,26 @@ function DashboardPage() {
         <span className="status-pill">Authenticated</span>
       </section>
 
+      {error && <p className="form-error page-error">{error}</p>}
+
       <section className="dashboard-grid">
         <article>
-          <p className="metric-label">Phase 5 Part 1</p>
-          <h2>Auth connected</h2>
-          <p>Signup, login, JWT storage, session restore, and protected routing are wired.</p>
+          <p className="metric-label">Resumes</p>
+          <h2>{metrics.resumes}</h2>
+          <Link to="/resumes">Manage resumes</Link>
         </article>
         <article>
-          <p className="metric-label">Next</p>
-          <h2>Resume UI</h2>
-          <p>Part 2 will connect resume and application CRUD screens to the backend.</p>
+          <p className="metric-label">Applications</p>
+          <h2>{metrics.applications}</h2>
+          <Link to="/applications">Manage applications</Link>
         </article>
         <article>
-          <p className="metric-label">Later</p>
-          <h2>AI workflow</h2>
-          <p>Part 3 will connect the AI analysis endpoint and show saved analysis history.</p>
+          <p className="metric-label">Active</p>
+          <h2>{metrics.active}</h2>
+          <Link to="/applications">View tracker</Link>
         </article>
       </section>
-    </main>
+    </AppShell>
   )
 }
 
