@@ -12,6 +12,9 @@ backend/target/
 backend/.mvn/
 backend/**/*.class
 
+# Local JDK installs
+oracleJdk-*/
+
 # IntelliJ
 backend/.idea/
 backend/*.iml
