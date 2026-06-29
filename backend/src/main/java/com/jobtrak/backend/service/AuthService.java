@@ -6,6 +6,7 @@ import com.jobtrak.backend.dto.SignupRequest;
 import com.jobtrak.backend.dto.UserResponse;
 import com.jobtrak.backend.entity.User;
 import com.jobtrak.backend.repository.UserRepository;
+import com.jobtrak.backend.security.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,12 @@ public class AuthService {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final JwtService jwtService;
 
-	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.jwtService = jwtService;
 	}
 
 	public AuthResponse signup(SignupRequest request) {
@@ -36,7 +39,7 @@ public class AuthService {
 		);
 
 		User savedUser = userRepository.save(user);
-		return new AuthResponse("Signup successful", toUserResponse(savedUser));
+		return new AuthResponse("Signup successful", toUserResponse(savedUser), jwtService.generateToken(savedUser));
 	}
 
 	public AuthResponse login(LoginRequest request) {
@@ -48,7 +51,7 @@ public class AuthService {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
 		}
 
-		return new AuthResponse("Login successful", toUserResponse(user));
+		return new AuthResponse("Login successful", toUserResponse(user), jwtService.generateToken(user));
 	}
 
 	private String normalizeEmail(String email) {
