@@ -115,8 +115,13 @@ function ApplicationsPage() {
     }
   }
 
+  const pipelineCounts = APPLICATION_STATUSES.map((status) => ({
+    status,
+    count: applications.filter((application) => application.status === status).length,
+  }))
+
   return (
-    <AppShell eyebrow="Tracker" title="Applications">
+    <AppShell eyebrow="Application pipeline" title="Job Tracker">
       <section className="workspace-layout wide">
         <form className="data-form" onSubmit={handleSubmit}>
           <div>
@@ -183,8 +188,20 @@ function ApplicationsPage() {
 
         <section className="data-list">
           <div className="section-heading">
-            <p className="metric-label">Tracked</p>
-            <h2>{applications.length} applications</h2>
+            <div>
+              <p className="metric-label">Tracked</p>
+              <h2>{applications.length} applications</h2>
+            </div>
+          </div>
+
+          <div className="tracker-summary">
+            {pipelineCounts.map((item) => (
+              <div className="tracker-chip" key={item.status}>
+                <span className={`status-dot status-dot-${item.status.toLowerCase()}`} />
+                <strong>{item.count}</strong>
+                <small>{formatStatus(item.status)}</small>
+              </div>
+            ))}
           </div>
 
           {loading ? (
@@ -194,20 +211,27 @@ function ApplicationsPage() {
           ) : (
             applications.map((application) => (
               <article className="list-item application-item" key={application.id}>
-                <div>
-                  <div className="item-title-row">
-                    <h3>{application.jobTitle}</h3>
+                <div className="application-main">
+                  <div className="application-heading">
+                    <span className="company-avatar">{getCompanyInitials(application.company)}</span>
+                    <div>
+                      <p className="company-name">{application.company}</p>
+                      <h3>{application.jobTitle}</h3>
+                    </div>
                     <span className={`status-tag status-${application.status.toLowerCase()}`}>
-                      {application.status}
+                      {formatStatus(application.status)}
                     </span>
                   </div>
-                  <p className="company-name">{application.company}</p>
-                  {application.jobDescription && <p>{application.jobDescription}</p>}
-                  {application.jobUrl && (
-                    <a href={application.jobUrl} rel="noreferrer" target="_blank">
-                      Job link
-                    </a>
-                  )}
+                  <div className="application-meta">
+                    <span>Updated {formatDate(application.updatedAt || application.createdAt)}</span>
+                    {application.jobUrl && (
+                      <a href={application.jobUrl} rel="noreferrer" target="_blank">
+                        View posting
+                      </a>
+                    )}
+                  </div>
+                  {application.jobDescription && <p className="application-preview">{application.jobDescription}</p>}
+                  {application.notes && <p className="application-note">{application.notes}</p>}
                 </div>
                 <div className="item-actions">
                   <select
@@ -243,6 +267,38 @@ function ApplicationsPage() {
       </section>
     </AppShell>
   )
+}
+
+function formatStatus(status) {
+  if (status === 'OA') {
+    return 'OA'
+  }
+
+  return status
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function getCompanyInitials(company) {
+  return company
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join('')
+}
+
+function formatDate(value) {
+  if (!value) {
+    return 'recently'
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(value))
 }
 
 export default ApplicationsPage

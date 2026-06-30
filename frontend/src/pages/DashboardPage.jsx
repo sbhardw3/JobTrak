@@ -55,33 +55,38 @@ function DashboardPage() {
           <h2>Welcome back, {user?.name}</h2>
           <p>Track every application, tune your resume, and prepare stronger outreach from one workspace.</p>
         </div>
-        <Link className="primary-link-button" to="/ai-analysis">
-          Run AI analysis
-        </Link>
+        <div className="hero-actions">
+          <Link className="primary-link-button" to="/applications">
+            Track a job
+          </Link>
+          <Link className="secondary-link-button" to="/ai-analysis">
+            Run AI analysis
+          </Link>
+        </div>
       </section>
 
       {error && <p className="form-error page-error">{error}</p>}
 
       <section className="dashboard-grid">
-        <article>
+        <article className="metric-card metric-card-teal">
           <p className="metric-label">Resumes</p>
           <h2>{metrics.resumes}</h2>
           <p>Saved resume versions ready for tailoring.</p>
           <Link to="/resumes">Manage resumes</Link>
         </article>
-        <article>
+        <article className="metric-card metric-card-blue">
           <p className="metric-label">Applications</p>
           <h2>{metrics.applications}</h2>
           <p>Jobs you are saving, applying to, or tracking.</p>
           <Link to="/applications">Manage applications</Link>
         </article>
-        <article>
+        <article className="metric-card metric-card-amber">
           <p className="metric-label">Active</p>
           <h2>{metrics.active}</h2>
           <p>Open opportunities still moving through your pipeline.</p>
           <Link to="/applications">View tracker</Link>
         </article>
-        <article>
+        <article className="metric-card metric-card-violet">
           <p className="metric-label">AI analyses</p>
           <h2>{metrics.analyses}</h2>
           <p>Resume-to-job matches with improvement suggestions.</p>

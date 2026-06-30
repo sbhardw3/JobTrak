@@ -173,10 +173,20 @@ function ResumesPage() {
             <p className="empty-state">No resumes saved yet.</p>
           ) : (
             resumes.map((resume) => (
-              <article className="list-item" key={resume.id}>
-                <div>
-                  <h3>{resume.title}</h3>
-                  <p>{resume.content}</p>
+              <article className="list-item resume-item" key={resume.id}>
+                <div className="resume-main">
+                  <div className="resume-heading">
+                    <span className="resume-icon">CV</span>
+                    <div>
+                      <p className="metric-label">Saved resume</p>
+                      <h3>{resume.title}</h3>
+                    </div>
+                  </div>
+                  <div className="resume-stats">
+                    <span>{getWordCount(resume.content)} words</span>
+                    <span>{getLineCount(resume.content)} lines</span>
+                  </div>
+                  <p className="resume-preview">{cleanResumePreview(resume.content)}</p>
                 </div>
                 <div className="item-actions">
                   <button className="secondary-button" onClick={() => startEdit(resume)} type="button">
@@ -193,6 +203,20 @@ function ResumesPage() {
       </section>
     </AppShell>
   )
+}
+
+function cleanResumePreview(content) {
+  return content
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function getWordCount(content) {
+  return cleanResumePreview(content).split(' ').filter(Boolean).length
+}
+
+function getLineCount(content) {
+  return content.split(/\r?\n/).filter((line) => line.trim()).length
 }
 
 function getUploadErrorMessage(err) {

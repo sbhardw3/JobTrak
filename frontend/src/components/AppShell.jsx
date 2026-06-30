@@ -11,18 +11,31 @@ function AppShell({ eyebrow, title, children }) {
           <span className="brand-mark">JT</span>
           <div>
             <strong>JobTrak</strong>
-            <small>AI job search hub</small>
+            <small>Application command center</small>
           </div>
         </div>
 
         <nav className="app-nav" aria-label="Primary navigation">
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/resumes">Resumes</NavLink>
-          <NavLink to="/applications">Applications</NavLink>
-          <NavLink to="/ai-analysis">AI Analysis</NavLink>
+          <NavLink to="/dashboard">
+            <span className="nav-icon">D</span>
+            Dashboard
+          </NavLink>
+          <NavLink to="/resumes">
+            <span className="nav-icon">R</span>
+            Resumes
+          </NavLink>
+          <NavLink to="/applications">
+            <span className="nav-icon">T</span>
+            Tracker
+          </NavLink>
+          <NavLink to="/ai-analysis">
+            <span className="nav-icon">AI</span>
+            AI Analysis
+          </NavLink>
         </nav>
 
         <div className="sidebar-user">
+          <small>Signed in as</small>
           <span>{user?.name}</span>
           <small>{user?.email}</small>
           <button className="secondary-button" onClick={logout} type="button">
