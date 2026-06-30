@@ -249,20 +249,10 @@ function AiAnalysisPage() {
         </form>
 
         <section className="analysis-results">
-          {latestAnalysis ? (
-            <AnalysisResult analysis={latestAnalysis} />
-          ) : submitting ? (
-            <div className="empty-state">Running analysis and saving it to history...</div>
-          ) : (
-            <div className="empty-state">
-              {loading ? 'Loading AI analyses...' : 'Run an analysis or select a saved analysis from History.'}
-            </div>
-          )}
-
           <section className="data-list history-panel">
             <div className="section-heading">
               <div>
-                <p className="metric-label">History</p>
+                <p className="metric-label">Recent history</p>
                 <h2>{analyses.length} saved</h2>
               </div>
               <small className="helper-inline">Latest 10</small>
@@ -271,24 +261,36 @@ function AiAnalysisPage() {
             {analyses.length === 0 ? (
               <p className="empty-state">No AI analyses saved yet.</p>
             ) : (
-              analyses.map((analysis) => (
-                <button
-                  className={`history-item ${latestAnalysis?.id === analysis.id ? 'active' : ''}`}
-                  disabled={loadingAnalysisId === analysis.id}
-                  key={analysis.id}
-                  onClick={() => selectHistoryItem(analysis)}
-                  type="button"
-                >
-                  <span>{analysis.matchScore}% match</span>
-                  <small>
-                    {loadingAnalysisId === analysis.id
-                      ? 'Refreshing...'
-                      : `${analysis.source} - ${formatAnalysisDate(analysis.createdAt)}`}
-                  </small>
-                </button>
-              ))
+              <div className="history-strip">
+                {analyses.map((analysis) => (
+                  <button
+                    className={`history-item ${latestAnalysis?.id === analysis.id ? 'active' : ''}`}
+                    disabled={loadingAnalysisId === analysis.id}
+                    key={analysis.id}
+                    onClick={() => selectHistoryItem(analysis)}
+                    type="button"
+                  >
+                    <span>{analysis.matchScore}%</span>
+                    <small>
+                      {loadingAnalysisId === analysis.id
+                        ? 'Refreshing...'
+                        : `${analysis.source} - ${formatAnalysisDate(analysis.createdAt)}`}
+                    </small>
+                  </button>
+                ))}
+              </div>
             )}
           </section>
+
+          {latestAnalysis ? (
+            <AnalysisResult analysis={latestAnalysis} />
+          ) : submitting ? (
+            <div className="empty-state">Running analysis and saving it to history...</div>
+          ) : (
+            <div className="empty-state">
+              {loading ? 'Loading AI analyses...' : 'Run an analysis or select a saved analysis from Recent history.'}
+            </div>
+          )}
         </section>
       </section>
     </AppShell>
@@ -329,8 +331,8 @@ function AnalysisResult({ analysis }) {
       )}
 
       <div className="analysis-columns">
-        <ResultList title="Missing keywords" items={analysis.missingKeywords} />
-        <ResultList title="Suggested skills" items={analysis.suggestedSkills} />
+        <ResultList title="Missing keywords" items={analysis.missingKeywords} variant="pills" />
+        <ResultList title="Suggested skills" items={analysis.suggestedSkills} variant="pills" />
       </div>
 
       <ResultList title="Resume-wide improvement plan" items={analysis.resumeRewritePlan} />
@@ -397,14 +399,20 @@ function getRecommendationCopy(score) {
   return 'Start by adding relevant skills, measurable project details, and role-specific language before sending this resume.'
 }
 
-function ResultList({ title, items }) {
+function ResultList({ title, items, variant = 'list' }) {
   const safeItems = items ?? []
 
   return (
-    <section className="result-list">
+    <section className={`result-list result-list-${variant}`}>
       <h3>{title}</h3>
       {safeItems.length === 0 ? (
         <p className="muted">No items returned.</p>
+      ) : variant === 'pills' ? (
+        <div className="result-pill-list">
+          {safeItems.map((item, index) => (
+            <span key={`${item}-${index}`}>{item}</span>
+          ))}
+        </div>
       ) : (
         <ul>
           {safeItems.map((item, index) => (

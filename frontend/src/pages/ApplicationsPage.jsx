@@ -23,6 +23,7 @@ function ApplicationsPage() {
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [activeStatus, setActiveStatus] = useState('ALL')
+  const [formOpen, setFormOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -64,6 +65,7 @@ function ApplicationsPage() {
       }
       setForm(emptyForm)
       setEditingId(null)
+      setFormOpen(false)
       await loadApplications()
     } catch {
       setError('Application could not be saved.')
@@ -74,6 +76,7 @@ function ApplicationsPage() {
 
   function startEdit(application) {
     setEditingId(application.id)
+    setFormOpen(true)
     setForm({
       company: application.company,
       jobTitle: application.jobTitle,
@@ -87,6 +90,7 @@ function ApplicationsPage() {
   function cancelEdit() {
     setEditingId(null)
     setForm(emptyForm)
+    setFormOpen(false)
   }
 
   async function handleDelete(id) {
@@ -138,7 +142,81 @@ function ApplicationsPage() {
           <button className="primary-button" onClick={() => setActiveStatus('ALL')} type="button">
             View all
           </button>
+          <button className="secondary-button" onClick={() => setFormOpen((current) => !current)} type="button">
+            {formOpen ? 'Close form' : 'Add application'}
+          </button>
         </section>
+
+        {(formOpen || editingId) && (
+          <form className="data-form tracker-form" onSubmit={handleSubmit}>
+            <div className="section-heading">
+              <div>
+                <p className="metric-label">{editingId ? 'Editing' : 'New application'}</p>
+                <h2>{editingId ? 'Update application' : 'Save application'}</h2>
+              </div>
+              <button className="secondary-button compact-button" onClick={cancelEdit} type="button">
+                Close
+              </button>
+            </div>
+
+            <div className="form-grid">
+              <label>
+                Company
+                <input name="company" onChange={handleChange} required type="text" value={form.company} />
+              </label>
+
+              <label>
+                Job title
+                <input name="jobTitle" onChange={handleChange} required type="text" value={form.jobTitle} />
+              </label>
+            </div>
+
+            <div className="form-grid">
+              <label>
+                Job URL
+                <input name="jobUrl" onChange={handleChange} type="url" value={form.jobUrl} />
+              </label>
+
+              <label>
+                Status
+                <select name="status" onChange={handleChange} value={form.status}>
+                  {APPLICATION_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {formatStatus(status)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="form-grid">
+              <label>
+                Job description
+                <textarea
+                  name="jobDescription"
+                  onChange={handleChange}
+                  rows="8"
+                  value={form.jobDescription}
+                />
+              </label>
+
+              <label>
+                Notes
+                <textarea name="notes" onChange={handleChange} rows="4" value={form.notes} />
+              </label>
+            </div>
+
+            {error && <p className="form-error">{error}</p>}
+
+            <div className="form-actions">
+              <button className="primary-button" disabled={submitting} type="submit">
+                {submitting ? 'Saving...' : editingId ? 'Update application' : 'Save application'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {error && !formOpen && !editingId && <p className="form-error">{error}</p>}
 
         <section className="tracker-summary" aria-label="Application status filters">
           <button
@@ -225,81 +303,23 @@ function ApplicationsPage() {
                           </option>
                         ))}
                       </select>
-                      <button className="secondary-button" onClick={() => startEdit(application)} type="button">
-                        Edit
-                      </button>
-                      <button className="danger-button" onClick={() => handleDelete(application.id)} type="button">
-                        Delete
-                      </button>
+                      <details className="action-menu">
+                        <summary aria-label={`Actions for ${application.company}`}>...</summary>
+                        <div>
+                          <button onClick={() => startEdit(application)} type="button">
+                            Edit
+                          </button>
+                          <button className="danger-menu-action" onClick={() => handleDelete(application.id)} type="button">
+                            Delete
+                          </button>
+                        </div>
+                      </details>
                     </div>
                   </article>
                 ))}
               </div>
             )}
           </section>
-
-          <form className="data-form tracker-form" onSubmit={handleSubmit}>
-            <div>
-              <p className="metric-label">{editingId ? 'Editing' : 'New application'}</p>
-              <h2>{editingId ? 'Update application' : 'Save application'}</h2>
-            </div>
-
-            <div className="form-grid">
-              <label>
-                Company
-                <input name="company" onChange={handleChange} required type="text" value={form.company} />
-              </label>
-
-              <label>
-                Job title
-                <input name="jobTitle" onChange={handleChange} required type="text" value={form.jobTitle} />
-              </label>
-            </div>
-
-            <label>
-              Job URL
-              <input name="jobUrl" onChange={handleChange} type="url" value={form.jobUrl} />
-            </label>
-
-            <label>
-              Status
-              <select name="status" onChange={handleChange} value={form.status}>
-                {APPLICATION_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {formatStatus(status)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Job description
-              <textarea
-                name="jobDescription"
-                onChange={handleChange}
-                rows="8"
-                value={form.jobDescription}
-              />
-            </label>
-
-            <label>
-              Notes
-              <textarea name="notes" onChange={handleChange} rows="4" value={form.notes} />
-            </label>
-
-            {error && <p className="form-error">{error}</p>}
-
-            <div className="form-actions">
-              <button className="primary-button" disabled={submitting} type="submit">
-                {submitting ? 'Saving...' : editingId ? 'Update application' : 'Save application'}
-              </button>
-              {editingId && (
-                <button className="secondary-button" onClick={cancelEdit} type="button">
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
         </section>
       </section>
     </AppShell>

@@ -186,15 +186,19 @@ function ResumesPage() {
                     <span>{getWordCount(resume.content)} words</span>
                     <span>{getLineCount(resume.content)} lines</span>
                   </div>
-                  <p className="resume-preview">{cleanResumePreview(resume.content)}</p>
                 </div>
                 <div className="item-actions">
-                  <button className="secondary-button" onClick={() => startEdit(resume)} type="button">
-                    Edit
-                  </button>
-                  <button className="danger-button" onClick={() => handleDelete(resume.id)} type="button">
-                    Delete
-                  </button>
+                  <details className="action-menu">
+                    <summary aria-label={`Actions for ${resume.title}`}>...</summary>
+                    <div>
+                      <button onClick={() => startEdit(resume)} type="button">
+                        Edit
+                      </button>
+                      <button className="danger-menu-action" onClick={() => handleDelete(resume.id)} type="button">
+                        Delete
+                      </button>
+                    </div>
+                  </details>
                 </div>
               </article>
             ))
@@ -211,12 +215,19 @@ function cleanResumePreview(content) {
     .trim()
 }
 
+function getCleanResumeLines(content) {
+  return content
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+}
+
 function getWordCount(content) {
   return cleanResumePreview(content).split(' ').filter(Boolean).length
 }
 
 function getLineCount(content) {
-  return content.split(/\r?\n/).filter((line) => line.trim()).length
+  return getCleanResumeLines(content).length
 }
 
 function getUploadErrorMessage(err) {

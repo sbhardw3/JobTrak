@@ -35,15 +35,19 @@ function AppShell({ eyebrow, title, children }) {
             </NavLink>
           </nav>
 
-          <div className="top-user">
-            <div className="top-user-copy">
+          <details className="account-menu">
+            <summary aria-label="Account menu">
+              <span className="account-avatar">{getInitials(user?.name || user?.email || 'User')}</span>
+            </summary>
+            <div className="account-panel">
               <small>Signed in as</small>
-              <span>{user?.name}</span>
+              <strong>{user?.name}</strong>
+              <span>{user?.email}</span>
+              <button onClick={logout} type="button">
+                Log out
+              </button>
             </div>
-            <button className="secondary-button logout-button" onClick={logout} type="button">
-              Log out
-            </button>
-          </div>
+          </details>
         </div>
       </header>
 
@@ -59,6 +63,15 @@ function AppShell({ eyebrow, title, children }) {
       </section>
     </main>
   )
+}
+
+function getInitials(value) {
+  return value
+    .split(/[ @.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
 }
 
 export default AppShell
