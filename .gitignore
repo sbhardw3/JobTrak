@@ -29,6 +29,8 @@ backend/*.iml
 # ENV / SECRETS
 # =========================
 .env
+**/.env
+**/.env.local
 application-local.properties
 
 # =========================

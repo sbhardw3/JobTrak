@@ -315,6 +315,12 @@ function AnalysisResult({ analysis }) {
         <p>{getRecommendationCopy(analysis.matchScore)}</p>
       </section>
 
+      {analysis.source === 'LOCAL_FALLBACK' && (
+        <p className="helper-text">
+          Local fallback was used. Check the Spring Boot terminal for the Gemini error reason.
+        </p>
+      )}
+
       <div className="analysis-columns">
         <ResultList title="Missing keywords" items={analysis.missingKeywords} />
         <ResultList title="Suggested skills" items={analysis.suggestedSkills} />
