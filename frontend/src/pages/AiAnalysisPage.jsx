@@ -11,6 +11,7 @@ const emptyForm = {
   applicationId: '',
   resumeText: '',
   jobDescription: '',
+  uploadedResumeName: '',
 }
 
 function AiAnalysisPage() {
@@ -67,6 +68,29 @@ function AiAnalysisPage() {
     }))
   }
 
+  async function handleResumeUpload(event) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const text = await file.text()
+      setForm((current) => ({
+        ...current,
+        resumeMode: 'upload',
+        resumeText: text,
+        uploadedResumeName: file.name,
+      }))
+      setError('')
+    } catch {
+      setError('Resume file could not be read. Try a plain text or markdown file.')
+    } finally {
+      event.target.value = ''
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
     setSubmitting(true)
@@ -75,7 +99,7 @@ function AiAnalysisPage() {
     const payload = {
       resumeId: form.resumeMode === 'saved' && form.resumeId ? Number(form.resumeId) : null,
       applicationId: form.jobMode === 'saved' && form.applicationId ? Number(form.applicationId) : null,
-      resumeText: form.resumeMode === 'paste' ? form.resumeText : null,
+      resumeText: form.resumeMode !== 'saved' ? form.resumeText : null,
       jobDescription: form.jobMode === 'paste' ? form.jobDescription : null,
     }
 
@@ -106,7 +130,8 @@ function AiAnalysisPage() {
           <label>
             Resume source
             <select name="resumeMode" onChange={handleChange} value={form.resumeMode}>
-              <option value="saved">Use saved resume</option>
+              <option value="saved">Select saved resume</option>
+              <option value="upload">Upload resume file</option>
               <option value="paste">Paste resume text</option>
             </select>
           </label>
@@ -123,6 +148,27 @@ function AiAnalysisPage() {
                 ))}
               </select>
             </label>
+          ) : form.resumeMode === 'upload' ? (
+            <>
+              <label className="upload-dropzone">
+                <span>Upload resume</span>
+                <small>Best with .txt, .md, or text-based resume files.</small>
+                <input accept=".txt,.md,.text" onChange={handleResumeUpload} type="file" />
+              </label>
+              {form.uploadedResumeName && (
+                <p className="helper-text">Loaded file: {form.uploadedResumeName}</p>
+              )}
+              <label>
+                Uploaded resume text
+                <textarea
+                  name="resumeText"
+                  onChange={handleChange}
+                  required
+                  rows="9"
+                  value={form.resumeText}
+                />
+              </label>
+            </>
           ) : (
             <label>
               Resume text
@@ -229,6 +275,12 @@ function AnalysisResult({ analysis }) {
         <div className="score-badge">{analysis.matchScore}%</div>
       </div>
 
+      <section className="recommendation-panel">
+        <p className="metric-label">Recommendation</p>
+        <h3>{getRecommendationTitle(analysis.matchScore)}</h3>
+        <p>{getRecommendationCopy(analysis.matchScore)}</p>
+      </section>
+
       <div className="analysis-columns">
         <ResultList title="Missing keywords" items={analysis.missingKeywords} />
         <ResultList title="Suggested skills" items={analysis.suggestedSkills} />
@@ -242,6 +294,26 @@ function AnalysisResult({ analysis }) {
       </section>
     </article>
   )
+}
+
+function getRecommendationTitle(score) {
+  if (score >= 80) {
+    return 'Strong fit'
+  }
+  if (score >= 60) {
+    return 'Good fit with targeted edits'
+  }
+  return 'Needs stronger alignment'
+}
+
+function getRecommendationCopy(score) {
+  if (score >= 80) {
+    return 'Keep the core resume structure and sharpen the language around the highest-value keywords from this role.'
+  }
+  if (score >= 60) {
+    return 'Use the missing keywords and bullet improvements below before applying so your resume mirrors the role more clearly.'
+  }
+  return 'Start by adding relevant skills, measurable project details, and role-specific language before sending this resume.'
 }
 
 function ResultList({ title, items }) {

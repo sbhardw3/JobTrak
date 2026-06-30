@@ -6,27 +6,41 @@ function AppShell({ eyebrow, title, children }) {
 
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">{eyebrow}</p>
-          <h1>{title}</h1>
+      <aside className="sidebar">
+        <div className="brand-block">
+          <span className="brand-mark">JT</span>
+          <div>
+            <strong>JobTrak</strong>
+            <small>AI job search hub</small>
+          </div>
         </div>
-        <div className="topbar-actions">
+
+        <nav className="app-nav" aria-label="Primary navigation">
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/resumes">Resumes</NavLink>
+          <NavLink to="/applications">Applications</NavLink>
+          <NavLink to="/ai-analysis">AI Analysis</NavLink>
+        </nav>
+
+        <div className="sidebar-user">
           <span>{user?.name}</span>
+          <small>{user?.email}</small>
           <button className="secondary-button" onClick={logout} type="button">
             Log out
           </button>
         </div>
-      </header>
+      </aside>
 
-      <nav className="app-nav" aria-label="Primary navigation">
-        <NavLink to="/dashboard">Dashboard</NavLink>
-        <NavLink to="/resumes">Resumes</NavLink>
-        <NavLink to="/applications">Applications</NavLink>
-        <NavLink to="/ai-analysis">AI Analysis</NavLink>
-      </nav>
+      <section className="main-content">
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">{eyebrow}</p>
+            <h1>{title}</h1>
+          </div>
+        </header>
 
-      {children}
+        {children}
+      </section>
     </main>
   )
 }

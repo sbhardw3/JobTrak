@@ -49,12 +49,15 @@ function DashboardPage() {
 
   return (
     <AppShell eyebrow="JobTrak" title="Dashboard">
-      <section className="welcome-band">
+      <section className="hero-band">
         <div>
-          <h2>Welcome, {user?.name}</h2>
-          <p>{user?.email}</p>
+          <p className="eyebrow">Command center</p>
+          <h2>Welcome back, {user?.name}</h2>
+          <p>Track every application, tune your resume, and prepare stronger outreach from one workspace.</p>
         </div>
-        <span className="status-pill">Authenticated</span>
+        <Link className="primary-link-button" to="/ai-analysis">
+          Run AI analysis
+        </Link>
       </section>
 
       {error && <p className="form-error page-error">{error}</p>}
@@ -63,21 +66,25 @@ function DashboardPage() {
         <article>
           <p className="metric-label">Resumes</p>
           <h2>{metrics.resumes}</h2>
+          <p>Saved resume versions ready for tailoring.</p>
           <Link to="/resumes">Manage resumes</Link>
         </article>
         <article>
           <p className="metric-label">Applications</p>
           <h2>{metrics.applications}</h2>
+          <p>Jobs you are saving, applying to, or tracking.</p>
           <Link to="/applications">Manage applications</Link>
         </article>
         <article>
           <p className="metric-label">Active</p>
           <h2>{metrics.active}</h2>
+          <p>Open opportunities still moving through your pipeline.</p>
           <Link to="/applications">View tracker</Link>
         </article>
         <article>
           <p className="metric-label">AI analyses</p>
           <h2>{metrics.analyses}</h2>
+          <p>Resume-to-job matches with improvement suggestions.</p>
           <Link to="/ai-analysis">Run analysis</Link>
         </article>
       </section>

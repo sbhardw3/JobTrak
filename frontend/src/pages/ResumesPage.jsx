@@ -39,6 +39,26 @@ function ResumesPage() {
     }))
   }
 
+  async function handleFileUpload(event) {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const text = await file.text()
+      const title = file.name.replace(/\.[^/.]+$/, '') || 'Uploaded resume'
+      setForm({ title, content: text })
+      setEditingId(null)
+      setError('')
+    } catch {
+      setError('Resume file could not be read. Try a plain text or markdown file.')
+    } finally {
+      event.target.value = ''
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
     setSubmitting(true)
@@ -95,6 +115,12 @@ function ResumesPage() {
             <p className="metric-label">{editingId ? 'Editing' : 'New resume'}</p>
             <h2>{editingId ? 'Update resume' : 'Save resume'}</h2>
           </div>
+
+          <label className="upload-dropzone">
+            <span>Upload resume file</span>
+            <small>Best with .txt, .md, or text-based resumes.</small>
+            <input accept=".txt,.md,.text" onChange={handleFileUpload} type="file" />
+          </label>
 
           <label>
             Title
