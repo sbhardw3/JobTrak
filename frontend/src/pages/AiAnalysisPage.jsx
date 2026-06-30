@@ -108,11 +108,11 @@ function AiAnalysisPage() {
     }
 
     try {
-      await analyzeResume(payload)
+      const analysis = await analyzeResume(payload)
       const refreshedAnalyses = await getAnalyses()
       setAnalyses(refreshedAnalyses)
-      setLatestAnalysis(null)
-      setNotice('Analysis saved to history. Select it from History to view the full resume improvement plan.')
+      setLatestAnalysis(refreshedAnalyses.find((item) => item.id === analysis.id) || analysis)
+      setNotice('Analysis updated and saved to history.')
     } catch (err) {
       setError(err.response?.data?.message || 'AI analysis could not be created.')
     } finally {
@@ -255,7 +255,7 @@ function AiAnalysisPage() {
             <div className="empty-state">Running analysis and saving it to history...</div>
           ) : (
             <div className="empty-state">
-              {loading ? 'Loading AI analyses...' : 'Select a saved analysis from History to view details.'}
+              {loading ? 'Loading AI analyses...' : 'Run an analysis or select a saved analysis from History.'}
             </div>
           )}
 
