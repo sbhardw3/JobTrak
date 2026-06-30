@@ -24,6 +24,7 @@ function AiAnalysisPage() {
   const [submitting, setSubmitting] = useState(false)
   const [loadingAnalysisId, setLoadingAnalysisId] = useState(null)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
   useEffect(() => {
     loadPageData()
@@ -48,7 +49,7 @@ function AiAnalysisPage() {
       setResumes(savedResumes)
       setApplications(savedApplications)
       setAnalyses(savedAnalyses)
-      setLatestAnalysis(savedAnalyses[0] || null)
+      setLatestAnalysis(null)
       setForm((current) => ({
         ...current,
         resumeId: current.resumeId || savedResumes[0]?.id?.toString() || '',
@@ -96,6 +97,7 @@ function AiAnalysisPage() {
     event.preventDefault()
     setSubmitting(true)
     setError('')
+    setNotice('')
     setLatestAnalysis(null)
 
     const payload = {
@@ -106,10 +108,11 @@ function AiAnalysisPage() {
     }
 
     try {
-      const analysis = await analyzeResume(payload)
+      await analyzeResume(payload)
       const refreshedAnalyses = await getAnalyses()
       setAnalyses(refreshedAnalyses)
-      setLatestAnalysis(refreshedAnalyses.find((item) => item.id === analysis.id) || analysis)
+      setLatestAnalysis(null)
+      setNotice('Analysis saved to history. Select it from History to view the full resume improvement plan.')
     } catch (err) {
       setError(err.response?.data?.message || 'AI analysis could not be created.')
     } finally {
@@ -119,6 +122,7 @@ function AiAnalysisPage() {
 
   async function selectHistoryItem(analysis) {
     setError('')
+    setNotice('')
     setLoadingAnalysisId(analysis.id)
 
     try {
@@ -237,6 +241,7 @@ function AiAnalysisPage() {
           )}
 
           {error && <p className="form-error">{error}</p>}
+          {notice && <p className="helper-text">{notice}</p>}
 
           <button className="primary-button" disabled={submitting || loading} type="submit">
             {submitting ? 'Analyzing...' : 'Run analysis'}
@@ -247,10 +252,10 @@ function AiAnalysisPage() {
           {latestAnalysis ? (
             <AnalysisResult analysis={latestAnalysis} />
           ) : submitting ? (
-            <div className="empty-state">Running a fresh analysis...</div>
+            <div className="empty-state">Running analysis and saving it to history...</div>
           ) : (
             <div className="empty-state">
-              {loading ? 'Loading AI analyses...' : 'Run an analysis to see results here.'}
+              {loading ? 'Loading AI analyses...' : 'Select a saved analysis from History to view details.'}
             </div>
           )}
 
@@ -315,7 +320,10 @@ function AnalysisResult({ analysis }) {
         <ResultList title="Suggested skills" items={analysis.suggestedSkills} />
       </div>
 
+      <ResultList title="Resume-wide improvement plan" items={analysis.resumeRewritePlan} />
       <ResultList title="Resume bullet improvements" items={analysis.resumeBulletImprovements} />
+      <ResultList title="Where to add the bullets" items={analysis.bulletPlacementSuggestions} />
+      <ResultList title="Where to add keywords and skills" items={analysis.keywordPlacementSuggestions} />
 
       <section className="cover-letter-box">
         <p className="metric-label">Cover letter</p>
@@ -346,15 +354,17 @@ function getRecommendationCopy(score) {
 }
 
 function ResultList({ title, items }) {
+  const safeItems = items ?? []
+
   return (
     <section className="result-list">
       <h3>{title}</h3>
-      {items.length === 0 ? (
+      {safeItems.length === 0 ? (
         <p className="muted">No items returned.</p>
       ) : (
         <ul>
-          {items.map((item) => (
-            <li key={item}>{item}</li>
+          {safeItems.map((item, index) => (
+            <li key={`${item}-${index}`}>{item}</li>
           ))}
         </ul>
       )}

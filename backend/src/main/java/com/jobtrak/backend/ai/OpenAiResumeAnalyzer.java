@@ -55,6 +55,9 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 				parsed.matchScore(),
 				parsed.missingKeywords(),
 				parsed.resumeBulletImprovements(),
+				parsed.resumeRewritePlan(),
+				parsed.bulletPlacementSuggestions(),
+				parsed.keywordPlacementSuggestions(),
 				parsed.suggestedSkills(),
 				parsed.coverLetter(),
 				"OPENAI",
@@ -105,6 +108,9 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 				Output rules:
 				- missingKeywords: include important job description terms that are missing or weakly represented in the resume
 				- resumeBulletImprovements: write 4-6 concrete resume bullet rewrites using action verbs and measurable impact placeholders only when the resume supports them
+				- resumeRewritePlan: explain how to improve the resume as a whole, section by section
+				- bulletPlacementSuggestions: for each improved bullet, tell the candidate exactly where to add it, such as Summary, Skills, Experience under a specific employer, Projects, Education, or Certifications
+				- keywordPlacementSuggestions: for missing keywords and suggested skills, tell the candidate where each should naturally appear and why
 				- suggestedSkills: include skills the candidate should emphasize based on both documents
 				- coverLetter: write a concise, role-specific cover letter in 3-4 short paragraphs
 				- Keep advice specific to this role. Avoid generic resume tips.
@@ -129,6 +135,9 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 								"matchScore",
 								"missingKeywords",
 								"resumeBulletImprovements",
+								"resumeRewritePlan",
+								"bulletPlacementSuggestions",
+								"keywordPlacementSuggestions",
 								"suggestedSkills",
 								"coverLetter"
 						),
@@ -141,6 +150,9 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 								),
 								"missingKeywords", stringArraySchema("Important job description keywords or requirements missing or weak in the resume."),
 								"resumeBulletImprovements", stringArraySchema("Concrete improved resume bullets tailored to the job description."),
+								"resumeRewritePlan", stringArraySchema("Section-by-section plan for improving the resume as a whole."),
+								"bulletPlacementSuggestions", stringArraySchema("Where each improved bullet should be added in the resume."),
+								"keywordPlacementSuggestions", stringArraySchema("Where missing keywords and suggested skills should be placed naturally in the resume."),
 								"suggestedSkills", stringArraySchema("Skills the candidate should emphasize based on the resume and role."),
 								"coverLetter", Map.of(
 										"type", "string",
@@ -168,6 +180,9 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 					result.matchScore(),
 					result.missingKeywords(),
 					result.resumeBulletImprovements(),
+					result.resumeRewritePlan(),
+					result.bulletPlacementSuggestions(),
+					result.keywordPlacementSuggestions(),
 					result.suggestedSkills(),
 					result.coverLetter(),
 					"OPENAI",
@@ -216,6 +231,9 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 			Integer matchScore,
 			List<String> missingKeywords,
 			List<String> resumeBulletImprovements,
+			List<String> resumeRewritePlan,
+			List<String> bulletPlacementSuggestions,
+			List<String> keywordPlacementSuggestions,
 			List<String> suggestedSkills,
 			String coverLetter
 	) {

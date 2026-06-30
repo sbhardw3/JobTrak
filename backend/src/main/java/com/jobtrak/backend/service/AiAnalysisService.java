@@ -65,6 +65,9 @@ public class AiAnalysisService {
 				result.matchScore(),
 				toJson(result.missingKeywords()),
 				toJson(result.resumeBulletImprovements()),
+				toJson(result.resumeRewritePlan()),
+				toJson(result.bulletPlacementSuggestions()),
+				toJson(result.keywordPlacementSuggestions()),
 				toJson(result.suggestedSkills()),
 				result.coverLetter(),
 				result.source(),
@@ -134,6 +137,10 @@ public class AiAnalysisService {
 	}
 
 	private List<String> fromJson(String json) {
+		if (json == null || json.isBlank()) {
+			return List.of();
+		}
+
 		try {
 			return objectMapper.readValue(json, STRING_LIST_TYPE);
 		} catch (JsonProcessingException ex) {
@@ -152,6 +159,9 @@ public class AiAnalysisService {
 				analysis.getMatchScore(),
 				fromJson(analysis.getMissingKeywordsJson()),
 				fromJson(analysis.getResumeBulletImprovementsJson()),
+				fromJson(analysis.getResumeRewritePlanJson()),
+				fromJson(analysis.getBulletPlacementSuggestionsJson()),
+				fromJson(analysis.getKeywordPlacementSuggestionsJson()),
 				fromJson(analysis.getSuggestedSkillsJson()),
 				analysis.getCoverLetter(),
 				analysis.getSource(),

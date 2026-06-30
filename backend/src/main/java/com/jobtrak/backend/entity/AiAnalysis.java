@@ -48,6 +48,15 @@ public class AiAnalysis {
 	@Column(nullable = false, columnDefinition = "text")
 	private String resumeBulletImprovementsJson;
 
+	@Column(columnDefinition = "text")
+	private String resumeRewritePlanJson;
+
+	@Column(columnDefinition = "text")
+	private String bulletPlacementSuggestionsJson;
+
+	@Column(columnDefinition = "text")
+	private String keywordPlacementSuggestionsJson;
+
 	@Column(nullable = false, columnDefinition = "text")
 	private String suggestedSkillsJson;
 
@@ -74,6 +83,9 @@ public class AiAnalysis {
 			Integer matchScore,
 			String missingKeywordsJson,
 			String resumeBulletImprovementsJson,
+			String resumeRewritePlanJson,
+			String bulletPlacementSuggestionsJson,
+			String keywordPlacementSuggestionsJson,
 			String suggestedSkillsJson,
 			String coverLetter,
 			String source,
@@ -87,6 +99,9 @@ public class AiAnalysis {
 		this.matchScore = matchScore;
 		this.missingKeywordsJson = missingKeywordsJson;
 		this.resumeBulletImprovementsJson = resumeBulletImprovementsJson;
+		this.resumeRewritePlanJson = resumeRewritePlanJson;
+		this.bulletPlacementSuggestionsJson = bulletPlacementSuggestionsJson;
+		this.keywordPlacementSuggestionsJson = keywordPlacementSuggestionsJson;
 		this.suggestedSkillsJson = suggestedSkillsJson;
 		this.coverLetter = coverLetter;
 		this.source = source;
@@ -120,6 +135,18 @@ public class AiAnalysis {
 
 	public String getResumeBulletImprovementsJson() {
 		return resumeBulletImprovementsJson;
+	}
+
+	public String getResumeRewritePlanJson() {
+		return resumeRewritePlanJson;
+	}
+
+	public String getBulletPlacementSuggestionsJson() {
+		return bulletPlacementSuggestionsJson;
+	}
+
+	public String getKeywordPlacementSuggestionsJson() {
+		return keywordPlacementSuggestionsJson;
 	}
 
 	public String getSuggestedSkillsJson() {
