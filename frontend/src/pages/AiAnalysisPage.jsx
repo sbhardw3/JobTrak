@@ -261,8 +261,11 @@ function AiAnalysisPage() {
 
           <section className="data-list history-panel">
             <div className="section-heading">
-              <p className="metric-label">History</p>
-              <h2>{analyses.length} saved</h2>
+              <div>
+                <p className="metric-label">History</p>
+                <h2>{analyses.length} saved</h2>
+              </div>
+              <small className="helper-inline">Latest 10</small>
             </div>
 
             {analyses.length === 0 ? (
@@ -270,14 +273,18 @@ function AiAnalysisPage() {
             ) : (
               analyses.map((analysis) => (
                 <button
-                  className="history-item"
+                  className={`history-item ${latestAnalysis?.id === analysis.id ? 'active' : ''}`}
                   disabled={loadingAnalysisId === analysis.id}
                   key={analysis.id}
                   onClick={() => selectHistoryItem(analysis)}
                   type="button"
                 >
                   <span>{analysis.matchScore}% match</span>
-                  <small>{loadingAnalysisId === analysis.id ? 'Refreshing...' : analysis.source}</small>
+                  <small>
+                    {loadingAnalysisId === analysis.id
+                      ? 'Refreshing...'
+                      : `${analysis.source} - ${formatAnalysisDate(analysis.createdAt)}`}
+                  </small>
                 </button>
               ))
             )}
@@ -327,8 +334,7 @@ function AnalysisResult({ analysis }) {
       </div>
 
       <ResultList title="Resume-wide improvement plan" items={analysis.resumeRewritePlan} />
-      <ResultList title="Resume bullet improvements" items={analysis.resumeBulletImprovements} />
-      <ResultList title="Where to add the bullets" items={analysis.bulletPlacementSuggestions} />
+      <ResultList title="Resume bullet placement plan" items={getBulletPlacementPlan(analysis)} />
       <ResultList title="Where to add keywords and skills" items={analysis.keywordPlacementSuggestions} />
 
       <section className="cover-letter-box">
@@ -337,6 +343,38 @@ function AnalysisResult({ analysis }) {
       </section>
     </article>
   )
+}
+
+function getBulletPlacementPlan(analysis) {
+  const bullets = analysis.resumeBulletImprovements ?? []
+  const placements = analysis.bulletPlacementSuggestions ?? []
+
+  if (placements.length === 0) {
+    return bullets
+  }
+
+  return bullets.map((bullet, index) => {
+    const placement = placements[index]
+
+    if (!placement) {
+      return bullet
+    }
+
+    return `${placement} - ${bullet}`
+  })
+}
+
+function formatAnalysisDate(value) {
+  if (!value) {
+    return 'recent'
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value))
 }
 
 function getRecommendationTitle(score) {

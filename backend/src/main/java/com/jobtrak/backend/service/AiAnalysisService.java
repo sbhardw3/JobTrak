@@ -74,13 +74,16 @@ public class AiAnalysisService {
 				result.model()
 		);
 
-		return toResponse(aiAnalysisRepository.save(analysis));
+		AiAnalysis savedAnalysis = aiAnalysisRepository.save(analysis);
+		pruneAnalysisHistory(user);
+		return toResponse(savedAnalysis);
 	}
 
 	public List<AiAnalysisResponse> getAll(String email) {
 		User user = userLookupService.getByEmail(email);
 		return aiAnalysisRepository.findByUserOrderByCreatedAtDesc(user)
 				.stream()
+				.limit(10)
 				.map(this::toResponse)
 				.toList();
 	}
@@ -146,6 +149,16 @@ public class AiAnalysisService {
 		} catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Unable to read AI analysis data", ex);
 		}
+	}
+
+	private void pruneAnalysisHistory(User user) {
+		List<AiAnalysis> analyses = aiAnalysisRepository.findByUserOrderByCreatedAtDesc(user);
+
+		if (analyses.size() <= 10) {
+			return;
+		}
+
+		aiAnalysisRepository.deleteAll(analyses.subList(10, analyses.size()));
 	}
 
 	private AiAnalysisResponse toResponse(AiAnalysis analysis) {

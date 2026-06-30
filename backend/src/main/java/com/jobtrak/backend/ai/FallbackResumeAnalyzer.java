@@ -35,9 +35,10 @@ public class FallbackResumeAnalyzer {
 		List<String> topMissing = missingKeywords.stream().limit(3).toList();
 
 		List<String> improvements = new ArrayList<>();
-		improvements.add("Add measurable impact to your strongest experience bullets, such as scale, revenue, latency, users, or time saved.");
-		improvements.add("Mirror the job description language where accurate, especially around: " + joinOrFallback(topMissing, "the role's core requirements") + ".");
-		improvements.add("Move the most relevant technical skills and accomplishments closer to the top of the resume.");
+		improvements.add("Experience: Most relevant role - Added bullet: Delivered measurable impact using the role's core tools, including scale, users, time saved, or reliability gains.");
+		improvements.add("Projects: Most relevant project - Added bullet: Built or improved features that demonstrate " + joinOrFallback(topMissing, "the role's core requirements") + ".");
+		improvements.add("Summary: Top of resume - Added bullet: Position your strongest matching technical strengths in a short target summary.");
+		improvements.add("Skills: Technical skills section - Added bullet: Group the most relevant job keywords into clear skill categories.");
 
 		List<String> resumeRewritePlan = List.of(
 				"Summary: add a 2-3 line target summary that names the role type and your strongest matching technical strengths.",
@@ -45,11 +46,7 @@ public class FallbackResumeAnalyzer {
 				"Experience or Projects: lead with the bullets that best prove the job description requirements, then add measurable impact where accurate."
 		);
 
-		List<String> bulletPlacementSuggestions = List.of(
-				"Add the strongest rewritten bullet under the most relevant Experience role or Project that already proves that skill.",
-				"Place technical implementation bullets under Projects if the experience came from academic, portfolio, or personal work.",
-				"Put measurable outcome bullets near the top of each relevant role so recruiters see impact quickly."
-		);
+		List<String> bulletPlacementSuggestions = List.of();
 
 		List<String> suggestedSkills = missingKeywords.isEmpty()
 				? jobKeywords.stream().limit(6).toList()

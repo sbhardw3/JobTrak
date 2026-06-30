@@ -26,11 +26,13 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 	private final FallbackResumeAnalyzer fallbackResumeAnalyzer;
 	private final String apiKey;
 	private final String model;
+	private final String fallbackModel;
 
 	public GeminiResumeAnalyzer(
 			FallbackResumeAnalyzer fallbackResumeAnalyzer,
 			@Value("${app.gemini.api-key}") String apiKey,
-			@Value("${app.gemini.model}") String model
+			@Value("${app.gemini.model}") String model,
+			@Value("${app.gemini.fallback-model}") String fallbackModel
 	) {
 		this.restClient = RestClient.builder()
 				.baseUrl("https://generativelanguage.googleapis.com")
@@ -39,6 +41,7 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 		this.fallbackResumeAnalyzer = fallbackResumeAnalyzer;
 		this.apiKey = apiKey;
 		this.model = model;
+		this.fallbackModel = fallbackModel;
 	}
 
 	@Override
@@ -48,50 +51,65 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 			return fallbackResumeAnalyzer.analyze(resumeText, jobDescription);
 		}
 
-		String responseBody;
+		for (String modelName : configuredModels()) {
+			String responseBody = null;
 
-		try {
-			logger.info("Sending resume analysis request to Gemini with model {}", model);
-			responseBody = restClient.post()
-					.uri("/v1beta/models/{model}:generateContent", model)
-					.header("x-goog-api-key", apiKey)
-					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-					.body(buildRequestBody(resumeText, jobDescription))
-					.retrieve()
-					.body(String.class);
-		} catch (RestClientResponseException ex) {
-			logger.warn(
-					"Gemini request failed with HTTP {}. Using local fallback analyzer. Response body: {}",
-					ex.getStatusCode().value(),
-					ex.getResponseBodyAsString()
-			);
-			return fallbackResumeAnalyzer.analyze(resumeText, jobDescription);
+			try {
+				logger.info("Sending resume analysis request to Gemini with model {}", modelName);
+				responseBody = restClient.post()
+						.uri("/v1beta/models/{model}:generateContent", modelName)
+						.header("x-goog-api-key", apiKey)
+						.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+						.body(buildRequestBody(resumeText, jobDescription))
+						.retrieve()
+						.body(String.class);
+
+				AiAnalysisResult parsed = parseResponse(responseBody, modelName);
+				logger.info("Gemini resume analysis completed successfully with model {}", modelName);
+				return parsed;
+			} catch (RestClientResponseException ex) {
+				logger.warn(
+						"Gemini request failed for model {} with HTTP {}. Response body: {}",
+						modelName,
+						ex.getStatusCode().value(),
+						ex.getResponseBodyAsString()
+				);
+			} catch (RuntimeException ex) {
+				logger.warn(
+						"Gemini response from model {} could not be parsed. finishReason={}, outputLength={}.",
+						modelName,
+						extractFinishReason(responseBody),
+						extractGeneratedTextLength(responseBody),
+						ex
+				);
+			}
 		}
 
-		try {
-			AiAnalysisResult parsed = parseResponse(responseBody);
-			logger.info("Gemini resume analysis completed successfully with model {}", model);
-			return new AiAnalysisResult(
-					parsed.matchScore(),
-					parsed.missingKeywords(),
-					parsed.resumeBulletImprovements(),
-					parsed.resumeRewritePlan(),
-					parsed.bulletPlacementSuggestions(),
-					parsed.keywordPlacementSuggestions(),
-					parsed.suggestedSkills(),
-					parsed.coverLetter(),
-					"GEMINI",
-					model
-			);
-		} catch (RuntimeException ex) {
-			logger.warn(
-					"Gemini response could not be parsed. finishReason={}, outputLength={}. Using local fallback analyzer.",
-					extractFinishReason(responseBody),
-					extractGeneratedTextLength(responseBody),
-					ex
-			);
-			return fallbackResumeAnalyzer.analyze(resumeText, jobDescription);
+		logger.warn("All configured Gemini models failed. Using local fallback analyzer.");
+		return fallbackResumeAnalyzer.analyze(resumeText, jobDescription);
+	}
+
+	private List<String> configuredModels() {
+		if (fallbackModel == null || fallbackModel.isBlank() || fallbackModel.equals(model)) {
+			return List.of(model);
 		}
+
+		return List.of(model, fallbackModel);
+	}
+
+	private AiAnalysisResult toGeminiResult(AiAnalysisResult parsed, String modelName) {
+		return new AiAnalysisResult(
+				parsed.matchScore(),
+				parsed.missingKeywords(),
+				parsed.resumeBulletImprovements(),
+				parsed.resumeRewritePlan(),
+				parsed.bulletPlacementSuggestions(),
+				parsed.keywordPlacementSuggestions(),
+				parsed.suggestedSkills(),
+				parsed.coverLetter(),
+				"GEMINI",
+				modelName
+			);
 	}
 
 	private Map<String, Object> buildRequestBody(String resumeText, String jobDescription) {
@@ -129,9 +147,11 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 
 				Output rules:
 				- missingKeywords: include important job description terms that are missing or weakly represented in the resume
-				- resumeBulletImprovements: write 4 concrete resume bullet rewrites using action verbs and measurable impact placeholders only when the resume supports them
+				- resumeBulletImprovements: write 4 concrete resume bullet rewrites and include exact placement in each item
+				- Format every resumeBulletImprovements item like: "Project: NinerMine - Added bullet: Built ..."
+				- Use section labels such as "Experience: Company Name", "Project: Project Name", "Skills", "Summary", "Education", or "Certifications"
 				- resumeRewritePlan: explain how to improve the resume as a whole, section by section, in 4 concise items
-				- bulletPlacementSuggestions: for each improved bullet, tell the candidate exactly where to add it, such as Summary, Skills, Experience under a specific employer, Projects, Education, or Certifications
+				- bulletPlacementSuggestions: return an empty array because placement belongs inside resumeBulletImprovements
 				- keywordPlacementSuggestions: for missing keywords and suggested skills, tell the candidate where each should naturally appear and why
 				- suggestedSkills: include skills the candidate should emphasize based on both documents
 				- coverLetter: write a concise, role-specific cover letter in 3-4 short paragraphs
@@ -158,9 +178,9 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 								"maximum", 100
 						),
 						"missingKeywords", stringArraySchema("Important job description keywords or requirements missing or weak in the resume."),
-						"resumeBulletImprovements", stringArraySchema("Concrete improved resume bullets tailored to the job description."),
+						"resumeBulletImprovements", stringArraySchema("Concrete improved resume bullets with exact resume placement included in each item."),
 						"resumeRewritePlan", stringArraySchema("Section-by-section plan for improving the resume as a whole."),
-						"bulletPlacementSuggestions", stringArraySchema("Where each improved bullet should be added in the resume."),
+						"bulletPlacementSuggestions", stringArraySchema("Empty array. Bullet placement belongs inside resumeBulletImprovements."),
 						"keywordPlacementSuggestions", stringArraySchema("Where missing keywords and suggested skills should be placed naturally in the resume."),
 						"suggestedSkills", stringArraySchema("Skills the candidate should emphasize based on the resume and role."),
 						"coverLetter", Map.of(
@@ -189,7 +209,7 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 		);
 	}
 
-	private AiAnalysisResult parseResponse(String responseBody) {
+	private AiAnalysisResult parseResponse(String responseBody, String modelName) {
 		JsonNode response;
 
 		try {
@@ -202,7 +222,7 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 
 		try {
 			ModelAnalysisResult result = objectMapper.readValue(outputText, ModelAnalysisResult.class);
-			return new AiAnalysisResult(
+			return toGeminiResult(new AiAnalysisResult(
 					result.matchScore(),
 					result.missingKeywords(),
 					result.resumeBulletImprovements(),
@@ -212,8 +232,8 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 					result.suggestedSkills(),
 					result.coverLetter(),
 					"GEMINI",
-					model
-			);
+					modelName
+			), modelName);
 		} catch (JsonProcessingException ex) {
 			throw new IllegalStateException("Gemini returned analysis in an unexpected format", ex);
 		}
@@ -239,6 +259,10 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 	}
 
 	private String extractFinishReason(String responseBody) {
+		if (responseBody == null || responseBody.isBlank()) {
+			return "empty";
+		}
+
 		try {
 			JsonNode response = objectMapper.readTree(responseBody);
 			return response.path("candidates").path(0).path("finishReason").asText("unknown");
@@ -248,6 +272,10 @@ public class GeminiResumeAnalyzer implements ResumeAnalyzer {
 	}
 
 	private int extractGeneratedTextLength(String responseBody) {
+		if (responseBody == null || responseBody.isBlank()) {
+			return 0;
+		}
+
 		try {
 			JsonNode response = objectMapper.readTree(responseBody);
 			JsonNode text = response.path("candidates").path(0).path("content").path("parts").path(0).path("text");

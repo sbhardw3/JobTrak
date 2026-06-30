@@ -1105,6 +1105,22 @@
   transform: translateY(-1px);
 }
 
+.history-item.active {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.1), rgba(37, 99, 235, 0.08));
+  border-color: var(--accent);
+}
+
+.history-item:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.helper-inline {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 @media (max-width: 1060px) {
   .app-shell {
     grid-template-columns: 1fr;
