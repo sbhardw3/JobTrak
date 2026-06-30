@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { analyzeResume, getAnalyses } from '../api/aiApi.js'
 import { getApplications } from '../api/applicationApi.js'
-import { getResumes } from '../api/resumeApi.js'
+import { extractResumeFile, getResumes } from '../api/resumeApi.js'
 import AppShell from '../components/AppShell.jsx'
 
 const emptyForm = {
@@ -76,16 +76,16 @@ function AiAnalysisPage() {
     }
 
     try {
-      const text = await file.text()
+      const parsedResume = await extractResumeFile(file)
       setForm((current) => ({
         ...current,
         resumeMode: 'upload',
-        resumeText: text,
+        resumeText: parsedResume.content,
         uploadedResumeName: file.name,
       }))
       setError('')
     } catch {
-      setError('Resume file could not be read. Try a plain text or markdown file.')
+      setError('Resume file could not be parsed. Try a PDF, Word, text, or markdown file.')
     } finally {
       event.target.value = ''
     }

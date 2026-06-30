@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
-import { createResume, deleteResume, getResumes, updateResume } from '../api/resumeApi.js'
+import {
+  createResume,
+  deleteResume,
+  extractResumeFile,
+  getResumes,
+  updateResume,
+} from '../api/resumeApi.js'
 import AppShell from '../components/AppShell.jsx'
 
 const emptyForm = {
@@ -47,13 +53,12 @@ function ResumesPage() {
     }
 
     try {
-      const text = await file.text()
-      const title = file.name.replace(/\.[^/.]+$/, '') || 'Uploaded resume'
-      setForm({ title, content: text })
+      const parsedResume = await extractResumeFile(file)
+      setForm({ title: parsedResume.title, content: parsedResume.content })
       setEditingId(null)
       setError('')
     } catch {
-      setError('Resume file could not be read. Try a plain text or markdown file.')
+      setError('Resume file could not be parsed. Try a PDF, Word, text, or markdown file.')
     } finally {
       event.target.value = ''
     }
