@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,37 +63,56 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 	}
 
 	private Map<String, Object> buildRequestBody(String resumeText, String jobDescription) {
-		return Map.of(
-				"model", model,
-				"input", List.of(
-						Map.of(
-								"role", "developer",
-								"content", "You are JobTrak's resume analysis engine. Return only data that matches the schema."
-						),
-						Map.of(
-								"role", "user",
-								"content", buildPrompt(resumeText, jobDescription)
-						)
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put("model", model);
+		body.put("store", false);
+		body.put("max_output_tokens", 2200);
+		body.put("temperature", 0.2);
+		body.put("input", List.of(
+				Map.of(
+						"role", "developer",
+						"content", buildDeveloperInstructions()
 				),
-				"text", Map.of("format", buildSchema())
-		);
+				Map.of(
+						"role", "user",
+						"content", buildPrompt(resumeText, jobDescription)
+				)
+		));
+		body.put("text", Map.of("format", buildSchema()));
+		return body;
+	}
+
+	private String buildDeveloperInstructions() {
+		return """
+				You are JobTrak's resume analysis engine.
+				Act like a practical technical recruiter and resume coach.
+				Ground every recommendation in the provided resume and job description.
+				Do not invent employers, degrees, certifications, metrics, or tools that are not supported by the resume.
+				Return only JSON that matches the schema.
+				""";
 	}
 
 	private String buildPrompt(String resumeText, String jobDescription) {
 		return """
-				Analyze this resume against the job description.
+				Analyze the resume against the job description and produce application-ready coaching.
 
-				Return:
-				- matchScore from 0 to 100
-				- missingKeywords from the job description
-				- resumeBulletImprovements as concrete improved bullet suggestions
-				- suggestedSkills the candidate should emphasize
-				- coverLetter tailored to the role
+				Scoring rules:
+				- 90-100: strong direct match with clear evidence for most required skills
+				- 70-89: good match with a few important gaps
+				- 50-69: partial match that needs targeted edits before applying
+				- below 50: weak match or too little resume evidence
 
-				Resume:
+				Output rules:
+				- missingKeywords: include important job description terms that are missing or weakly represented in the resume
+				- resumeBulletImprovements: write 4-6 concrete resume bullet rewrites using action verbs and measurable impact placeholders only when the resume supports them
+				- suggestedSkills: include skills the candidate should emphasize based on both documents
+				- coverLetter: write a concise, role-specific cover letter in 3-4 short paragraphs
+				- Keep advice specific to this role. Avoid generic resume tips.
+
+				RESUME:
 				%s
 
-				Job Description:
+				JOB DESCRIPTION:
 				%s
 				""".formatted(resumeText, jobDescription);
 	}
@@ -115,21 +135,26 @@ public class OpenAiResumeAnalyzer implements ResumeAnalyzer {
 						"properties", Map.of(
 								"matchScore", Map.of(
 										"type", "integer",
+										"description", "Overall resume-to-job match score from 0 to 100.",
 										"minimum", 0,
 										"maximum", 100
 								),
-								"missingKeywords", stringArraySchema(),
-								"resumeBulletImprovements", stringArraySchema(),
-								"suggestedSkills", stringArraySchema(),
-								"coverLetter", Map.of("type", "string")
+								"missingKeywords", stringArraySchema("Important job description keywords or requirements missing or weak in the resume."),
+								"resumeBulletImprovements", stringArraySchema("Concrete improved resume bullets tailored to the job description."),
+								"suggestedSkills", stringArraySchema("Skills the candidate should emphasize based on the resume and role."),
+								"coverLetter", Map.of(
+										"type", "string",
+										"description", "A concise tailored cover letter for this job."
+								)
 						)
 				)
 		);
 	}
 
-	private Map<String, Object> stringArraySchema() {
+	private Map<String, Object> stringArraySchema(String description) {
 		return Map.of(
 				"type", "array",
+				"description", description,
 				"items", Map.of("type", "string")
 		);
 	}

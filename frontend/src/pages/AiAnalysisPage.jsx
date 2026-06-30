@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { analyzeResume, getAnalyses } from '../api/aiApi.js'
+import { analyzeResume, getAnalyses, getAnalysis } from '../api/aiApi.js'
 import { getApplications } from '../api/applicationApi.js'
 import { extractResumeFile, getResumes } from '../api/resumeApi.js'
 import AppShell from '../components/AppShell.jsx'
@@ -22,6 +22,7 @@ function AiAnalysisPage() {
   const [latestAnalysis, setLatestAnalysis] = useState(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [loadingAnalysisId, setLoadingAnalysisId] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -84,8 +85,8 @@ function AiAnalysisPage() {
         uploadedResumeName: file.name,
       }))
       setError('')
-    } catch {
-      setError('Resume file could not be parsed. Try a PDF, Word, text, or markdown file.')
+    } catch (err) {
+      setError(getUploadErrorMessage(err))
     } finally {
       event.target.value = ''
     }
@@ -95,6 +96,7 @@ function AiAnalysisPage() {
     event.preventDefault()
     setSubmitting(true)
     setError('')
+    setLatestAnalysis(null)
 
     const payload = {
       resumeId: form.resumeMode === 'saved' && form.resumeId ? Number(form.resumeId) : null,
@@ -105,8 +107,9 @@ function AiAnalysisPage() {
 
     try {
       const analysis = await analyzeResume(payload)
-      setLatestAnalysis(analysis)
-      setAnalyses((current) => [analysis, ...current.filter((item) => item.id !== analysis.id)])
+      const refreshedAnalyses = await getAnalyses()
+      setAnalyses(refreshedAnalyses)
+      setLatestAnalysis(refreshedAnalyses.find((item) => item.id === analysis.id) || analysis)
     } catch (err) {
       setError(err.response?.data?.message || 'AI analysis could not be created.')
     } finally {
@@ -114,8 +117,17 @@ function AiAnalysisPage() {
     }
   }
 
-  function selectHistoryItem(analysis) {
-    setLatestAnalysis(analysis)
+  async function selectHistoryItem(analysis) {
+    setError('')
+    setLoadingAnalysisId(analysis.id)
+
+    try {
+      setLatestAnalysis(await getAnalysis(analysis.id))
+    } catch (err) {
+      setError(err.response?.data?.message || 'AI analysis could not be refreshed.')
+    } finally {
+      setLoadingAnalysisId(null)
+    }
   }
 
   return (
@@ -234,6 +246,8 @@ function AiAnalysisPage() {
         <section className="analysis-results">
           {latestAnalysis ? (
             <AnalysisResult analysis={latestAnalysis} />
+          ) : submitting ? (
+            <div className="empty-state">Running a fresh analysis...</div>
           ) : (
             <div className="empty-state">
               {loading ? 'Loading AI analyses...' : 'Run an analysis to see results here.'}
@@ -252,12 +266,13 @@ function AiAnalysisPage() {
               analyses.map((analysis) => (
                 <button
                   className="history-item"
+                  disabled={loadingAnalysisId === analysis.id}
                   key={analysis.id}
                   onClick={() => selectHistoryItem(analysis)}
                   type="button"
                 >
                   <span>{analysis.matchScore}% match</span>
-                  <small>{analysis.source}</small>
+                  <small>{loadingAnalysisId === analysis.id ? 'Refreshing...' : analysis.source}</small>
                 </button>
               ))
             )}
@@ -266,6 +281,16 @@ function AiAnalysisPage() {
       </section>
     </AppShell>
   )
+}
+
+function getUploadErrorMessage(err) {
+  const serverMessage = err.response?.data?.detail || err.response?.data?.message
+
+  if (serverMessage) {
+    return serverMessage
+  }
+
+  return 'Resume file could not be parsed. Try a PDF, Word, text, or markdown file.'
 }
 
 function AnalysisResult({ analysis }) {

@@ -57,8 +57,8 @@ function ResumesPage() {
       setForm({ title: parsedResume.title, content: parsedResume.content })
       setEditingId(null)
       setError('')
-    } catch {
-      setError('Resume file could not be parsed. Try a PDF, Word, text, or markdown file.')
+    } catch (err) {
+      setError(getUploadErrorMessage(err))
     } finally {
       event.target.value = ''
     }
@@ -193,6 +193,16 @@ function ResumesPage() {
       </section>
     </AppShell>
   )
+}
+
+function getUploadErrorMessage(err) {
+  const serverMessage = err.response?.data?.detail || err.response?.data?.message
+
+  if (serverMessage) {
+    return serverMessage
+  }
+
+  return 'Resume file could not be parsed. Try a PDF, Word, text, or markdown file.'
 }
 
 export default ResumesPage

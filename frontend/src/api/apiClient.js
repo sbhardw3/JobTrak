@@ -5,9 +5,6 @@ const TOKEN_STORAGE_KEY = 'jobtrak_token'
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 })
 
 apiClient.interceptors.request.use((config) => {
@@ -15,6 +12,12 @@ apiClient.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  }
+
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  } else {
+    config.headers['Content-Type'] = 'application/json'
   }
 
   return config
