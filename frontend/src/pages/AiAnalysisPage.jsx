@@ -152,8 +152,12 @@ function AiAnalysisPage() {
             <>
               <label className="upload-dropzone">
                 <span>Upload resume</span>
-                <small>Best with .txt, .md, or text-based resume files.</small>
-                <input accept=".txt,.md,.text" onChange={handleResumeUpload} type="file" />
+                <small>Choose a .pdf, .doc, .docx, .txt, or .md resume.</small>
+                <input
+                  accept=".pdf,.doc,.docx,.txt,.md,.text,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleResumeUpload}
+                  type="file"
+                />
               </label>
               {form.uploadedResumeName && (
                 <p className="helper-text">Loaded file: {form.uploadedResumeName}</p>

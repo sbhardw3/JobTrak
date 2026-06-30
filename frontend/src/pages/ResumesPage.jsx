@@ -118,8 +118,12 @@ function ResumesPage() {
 
           <label className="upload-dropzone">
             <span>Upload resume file</span>
-            <small>Best with .txt, .md, or text-based resumes.</small>
-            <input accept=".txt,.md,.text" onChange={handleFileUpload} type="file" />
+            <small>Choose a .pdf, .doc, .docx, .txt, or .md resume.</small>
+            <input
+              accept=".pdf,.doc,.docx,.txt,.md,.text,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={handleFileUpload}
+              type="file"
+            />
           </label>
 
           <label>
