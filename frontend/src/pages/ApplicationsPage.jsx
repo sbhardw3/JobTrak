@@ -22,6 +22,7 @@ function ApplicationsPage() {
   const [applications, setApplications] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
+  const [activeStatus, setActiveStatus] = useState('ALL')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -119,150 +120,186 @@ function ApplicationsPage() {
     status,
     count: applications.filter((application) => application.status === status).length,
   }))
+  const filteredApplications =
+    activeStatus === 'ALL'
+      ? applications
+      : applications.filter((application) => application.status === activeStatus)
+  const activeStatusLabel = activeStatus === 'ALL' ? 'All applications' : formatStatus(activeStatus)
 
   return (
     <AppShell eyebrow="Application pipeline" title="Job Tracker">
-      <section className="workspace-layout wide">
-        <form className="data-form" onSubmit={handleSubmit}>
+      <section className="tracker-page">
+        <section className="tracker-hero">
           <div>
-            <p className="metric-label">{editingId ? 'Editing' : 'New application'}</p>
-            <h2>{editingId ? 'Update application' : 'Save application'}</h2>
+            <p className="metric-label">Tracked</p>
+            <h2>{applications.length} applications</h2>
+            <p>Filter the pipeline by status, update stages quickly, and keep every company-role pair visible.</p>
           </div>
+          <button className="primary-button" onClick={() => setActiveStatus('ALL')} type="button">
+            View all
+          </button>
+        </section>
 
-          <div className="form-grid">
-            <label>
-              Company
-              <input name="company" onChange={handleChange} required type="text" value={form.company} />
-            </label>
-
-            <label>
-              Job title
-              <input name="jobTitle" onChange={handleChange} required type="text" value={form.jobTitle} />
-            </label>
-          </div>
-
-          <label>
-            Job URL
-            <input name="jobUrl" onChange={handleChange} type="url" value={form.jobUrl} />
-          </label>
-
-          <label>
-            Status
-            <select name="status" onChange={handleChange} value={form.status}>
-              {APPLICATION_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Job description
-            <textarea
-              name="jobDescription"
-              onChange={handleChange}
-              rows="8"
-              value={form.jobDescription}
-            />
-          </label>
-
-          <label>
-            Notes
-            <textarea name="notes" onChange={handleChange} rows="4" value={form.notes} />
-          </label>
-
-          {error && <p className="form-error">{error}</p>}
-
-          <div className="form-actions">
-            <button className="primary-button" disabled={submitting} type="submit">
-              {submitting ? 'Saving...' : editingId ? 'Update application' : 'Save application'}
+        <section className="tracker-summary" aria-label="Application status filters">
+          <button
+            className={`tracker-chip tracker-chip-all ${activeStatus === 'ALL' ? 'active' : ''}`}
+            onClick={() => setActiveStatus('ALL')}
+            type="button"
+          >
+            <span className="status-dot status-dot-all" />
+            <strong>{applications.length}</strong>
+            <small>All</small>
+          </button>
+          {pipelineCounts.map((item) => (
+            <button
+              className={`tracker-chip ${activeStatus === item.status ? 'active' : ''}`}
+              key={item.status}
+              onClick={() => setActiveStatus(item.status)}
+              type="button"
+            >
+              <span className={`status-dot status-dot-${item.status.toLowerCase()}`} />
+              <strong>{item.count}</strong>
+              <small>{formatStatus(item.status)}</small>
             </button>
-            {editingId && (
-              <button className="secondary-button" onClick={cancelEdit} type="button">
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
+          ))}
+        </section>
 
-        <section className="data-list">
-          <div className="section-heading">
-            <div>
-              <p className="metric-label">Tracked</p>
-              <h2>{applications.length} applications</h2>
-            </div>
-          </div>
-
-          <div className="tracker-summary">
-            {pipelineCounts.map((item) => (
-              <div className="tracker-chip" key={item.status}>
-                <span className={`status-dot status-dot-${item.status.toLowerCase()}`} />
-                <strong>{item.count}</strong>
-                <small>{formatStatus(item.status)}</small>
+        <section className="tracker-content">
+          <section className="tracker-list-panel">
+            <div className="section-heading">
+              <div>
+                <p className="metric-label">Showing</p>
+                <h2>
+                  {activeStatusLabel} <span>{filteredApplications.length}</span>
+                </h2>
               </div>
-            ))}
-          </div>
+              {activeStatus !== 'ALL' && (
+                <button className="secondary-button compact-button" onClick={() => setActiveStatus('ALL')} type="button">
+                  Clear filter
+                </button>
+              )}
+            </div>
 
-          {loading ? (
-            <p className="muted">Loading applications...</p>
-          ) : applications.length === 0 ? (
-            <p className="empty-state">No applications saved yet.</p>
-          ) : (
-            applications.map((application) => (
-              <article className="list-item application-item" key={application.id}>
-                <div className="application-main">
-                  <div className="application-heading">
-                    <span className="company-avatar">{getCompanyInitials(application.company)}</span>
-                    <div>
-                      <p className="company-name">{application.company}</p>
-                      <h3>{application.jobTitle}</h3>
+            {loading ? (
+              <p className="muted">Loading applications...</p>
+            ) : filteredApplications.length === 0 ? (
+              <p className="empty-state">No applications in this status yet.</p>
+            ) : (
+              <div className="application-card-grid">
+                {filteredApplications.map((application) => (
+                  <article className="application-card" key={application.id}>
+                    <div className="application-card-header">
+                      <span className="company-avatar">{getCompanyInitials(application.company)}</span>
+                      <div>
+                        <p className="company-name">{application.company}</p>
+                        <h3>{application.jobTitle}</h3>
+                      </div>
+                      <span className={`status-tag status-${application.status.toLowerCase()}`}>
+                        {formatStatus(application.status)}
+                      </span>
                     </div>
-                    <span className={`status-tag status-${application.status.toLowerCase()}`}>
-                      {formatStatus(application.status)}
-                    </span>
-                  </div>
-                  <div className="application-meta">
-                    <span>Updated {formatDate(application.updatedAt || application.createdAt)}</span>
-                    {application.jobUrl && (
-                      <a href={application.jobUrl} rel="noreferrer" target="_blank">
-                        View posting
-                      </a>
+
+                    <div className="application-meta">
+                      <span>Updated {formatDate(application.updatedAt || application.createdAt)}</span>
+                      {application.jobUrl && (
+                        <a href={application.jobUrl} rel="noreferrer" target="_blank">
+                          View posting
+                        </a>
+                      )}
+                    </div>
+
+                    {application.jobDescription && (
+                      <p className="application-preview">{application.jobDescription}</p>
                     )}
-                  </div>
-                  {application.jobDescription && <p className="application-preview">{application.jobDescription}</p>}
-                  {application.notes && <p className="application-note">{application.notes}</p>}
-                </div>
-                <div className="item-actions">
-                  <select
-                    aria-label={`Status for ${application.company}`}
-                    onChange={(event) => handleStatusChange(application.id, event.target.value)}
-                    value={application.status}
-                  >
-                    {APPLICATION_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    className="secondary-button"
-                    onClick={() => startEdit(application)}
-                    type="button"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="danger-button"
-                    onClick={() => handleDelete(application.id)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))
-          )}
+                    {application.notes && <p className="application-note">{application.notes}</p>}
+
+                    <div className="application-card-actions">
+                      <select
+                        aria-label={`Status for ${application.company}`}
+                        onChange={(event) => handleStatusChange(application.id, event.target.value)}
+                        value={application.status}
+                      >
+                        {APPLICATION_STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {formatStatus(status)}
+                          </option>
+                        ))}
+                      </select>
+                      <button className="secondary-button" onClick={() => startEdit(application)} type="button">
+                        Edit
+                      </button>
+                      <button className="danger-button" onClick={() => handleDelete(application.id)} type="button">
+                        Delete
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <form className="data-form tracker-form" onSubmit={handleSubmit}>
+            <div>
+              <p className="metric-label">{editingId ? 'Editing' : 'New application'}</p>
+              <h2>{editingId ? 'Update application' : 'Save application'}</h2>
+            </div>
+
+            <div className="form-grid">
+              <label>
+                Company
+                <input name="company" onChange={handleChange} required type="text" value={form.company} />
+              </label>
+
+              <label>
+                Job title
+                <input name="jobTitle" onChange={handleChange} required type="text" value={form.jobTitle} />
+              </label>
+            </div>
+
+            <label>
+              Job URL
+              <input name="jobUrl" onChange={handleChange} type="url" value={form.jobUrl} />
+            </label>
+
+            <label>
+              Status
+              <select name="status" onChange={handleChange} value={form.status}>
+                {APPLICATION_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {formatStatus(status)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Job description
+              <textarea
+                name="jobDescription"
+                onChange={handleChange}
+                rows="8"
+                value={form.jobDescription}
+              />
+            </label>
+
+            <label>
+              Notes
+              <textarea name="notes" onChange={handleChange} rows="4" value={form.notes} />
+            </label>
+
+            {error && <p className="form-error">{error}</p>}
+
+            <div className="form-actions">
+              <button className="primary-button" disabled={submitting} type="submit">
+                {submitting ? 'Saving...' : editingId ? 'Update application' : 'Save application'}
+              </button>
+              {editingId && (
+                <button className="secondary-button" onClick={cancelEdit} type="button">
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
         </section>
       </section>
     </AppShell>
