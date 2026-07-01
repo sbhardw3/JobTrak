@@ -2,11 +2,14 @@ package com.jobtrak.backend.service;
 
 import com.jobtrak.backend.dto.ResumeRequest;
 import com.jobtrak.backend.dto.ResumeResponse;
+import com.jobtrak.backend.entity.AiAnalysis;
 import com.jobtrak.backend.entity.Resume;
 import com.jobtrak.backend.entity.User;
+import com.jobtrak.backend.repository.AiAnalysisRepository;
 import com.jobtrak.backend.repository.ResumeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -15,10 +18,16 @@ import java.util.List;
 public class ResumeService {
 
 	private final ResumeRepository resumeRepository;
+	private final AiAnalysisRepository aiAnalysisRepository;
 	private final UserLookupService userLookupService;
 
-	public ResumeService(ResumeRepository resumeRepository, UserLookupService userLookupService) {
+	public ResumeService(
+			ResumeRepository resumeRepository,
+			AiAnalysisRepository aiAnalysisRepository,
+			UserLookupService userLookupService
+	) {
 		this.resumeRepository = resumeRepository;
+		this.aiAnalysisRepository = aiAnalysisRepository;
 		this.userLookupService = userLookupService;
 	}
 
@@ -46,8 +55,13 @@ public class ResumeService {
 		return toResponse(resumeRepository.save(resume));
 	}
 
+	@Transactional
 	public void delete(String email, Long id) {
-		resumeRepository.delete(findOwnedResume(email, id));
+		Resume resume = findOwnedResume(email, id);
+		List<AiAnalysis> analyses = aiAnalysisRepository.findByResume(resume);
+		analyses.forEach(AiAnalysis::detachResume);
+		aiAnalysisRepository.saveAll(analyses);
+		resumeRepository.delete(resume);
 	}
 
 	private Resume findOwnedResume(String email, Long id) {

@@ -3,12 +3,15 @@ package com.jobtrak.backend.service;
 import com.jobtrak.backend.dto.JobApplicationRequest;
 import com.jobtrak.backend.dto.JobApplicationResponse;
 import com.jobtrak.backend.dto.StatusUpdateRequest;
+import com.jobtrak.backend.entity.AiAnalysis;
 import com.jobtrak.backend.entity.ApplicationStatus;
 import com.jobtrak.backend.entity.JobApplication;
 import com.jobtrak.backend.entity.User;
+import com.jobtrak.backend.repository.AiAnalysisRepository;
 import com.jobtrak.backend.repository.JobApplicationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -17,13 +20,16 @@ import java.util.List;
 public class JobApplicationService {
 
 	private final JobApplicationRepository jobApplicationRepository;
+	private final AiAnalysisRepository aiAnalysisRepository;
 	private final UserLookupService userLookupService;
 
 	public JobApplicationService(
 			JobApplicationRepository jobApplicationRepository,
+			AiAnalysisRepository aiAnalysisRepository,
 			UserLookupService userLookupService
 	) {
 		this.jobApplicationRepository = jobApplicationRepository;
+		this.aiAnalysisRepository = aiAnalysisRepository;
 		this.userLookupService = userLookupService;
 	}
 
@@ -74,8 +80,13 @@ public class JobApplicationService {
 		return toResponse(jobApplicationRepository.save(application));
 	}
 
+	@Transactional
 	public void delete(String email, Long id) {
-		jobApplicationRepository.delete(findOwnedApplication(email, id));
+		JobApplication application = findOwnedApplication(email, id);
+		List<AiAnalysis> analyses = aiAnalysisRepository.findByJobApplication(application);
+		analyses.forEach(AiAnalysis::detachJobApplication);
+		aiAnalysisRepository.saveAll(analyses);
+		jobApplicationRepository.delete(application);
 	}
 
 	private JobApplication findOwnedApplication(String email, Long id) {

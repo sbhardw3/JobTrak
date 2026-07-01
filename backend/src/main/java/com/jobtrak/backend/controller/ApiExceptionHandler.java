@@ -4,6 +4,7 @@ import com.jobtrak.backend.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -42,5 +43,17 @@ public class ApiExceptionHandler {
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
 				.body(ErrorResponse.of(message, HttpStatus.BAD_REQUEST.value(), request.getRequestURI(), errors));
+	}
+
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ErrorResponse> handleUnreadableMessage(
+			HttpMessageNotReadableException ex,
+			HttpServletRequest request
+	) {
+		String message = "Request body is invalid or malformed";
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(ErrorResponse.of(message, HttpStatus.BAD_REQUEST.value(), request.getRequestURI()));
 	}
 }

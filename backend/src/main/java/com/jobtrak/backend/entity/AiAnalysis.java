@@ -125,6 +125,14 @@ public class AiAnalysis {
 		return jobApplication;
 	}
 
+	public void detachResume() {
+		this.resume = null;
+	}
+
+	public void detachJobApplication() {
+		this.jobApplication = null;
+	}
+
 	public Integer getMatchScore() {
 		return matchScore;
 	}
