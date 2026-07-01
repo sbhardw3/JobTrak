@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth.js'
+import { getApiErrorMessage } from '../utils/apiError.js'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ function LoginPage() {
       await login(form)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Check your email and password.')
+      setError(getApiErrorMessage(err, 'Login failed. Check your email and password.'))
     } finally {
       setSubmitting(false)
     }

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth.js'
+import { getApiErrorMessage } from '../utils/apiError.js'
 
 function SignupPage() {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ function SignupPage() {
       await signup(form)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Try a different email.')
+      setError(getApiErrorMessage(err, 'Signup failed. Try a different email.'))
     } finally {
       setSubmitting(false)
     }
