@@ -404,21 +404,27 @@ http://localhost:5173
 
 ## Environment Variables
 
-The backend uses environment variables for sensitive configuration.
+The app uses environment variables for database credentials, JWT secrets, and API keys.
 
-Create a backend `.env` file using `.env.example` as a guide.
+For Docker, create a root `.env` file from:
 
-Example backend environment variables:
-
-```env
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/jobtrak_db
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=your_database_password
-JWT_SECRET=your_jwt_secret
-GEMINI_API_KEY=your_gemini_api_key
+```text
+.env.example
 ```
 
-Never commit real secrets, passwords, JWT secrets, or API keys to GitHub.
+For running the backend manually from `backend/`, create:
+
+```text
+backend/.env
+```
+
+using:
+
+```text
+backend/.env.example
+```
+
+Never commit real `.env` files, passwords, JWT secrets, or API keys to GitHub.
 
 ---
 

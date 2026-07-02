@@ -2,16 +2,15 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: jobtrak-postgres
-    environment:
-      POSTGRES_DB: jobtrak_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: jobtrak123
+    env_file:
+      - path: ./.env
+        required: true
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d jobtrak_db"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,12 +20,11 @@ services:
       context: ./backend
     container_name: jobtrak-backend
     env_file:
+      - path: ./.env
+        required: true
       - path: ./backend/.env
         required: false
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/jobtrak_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: jobtrak123
       SPRING_JPA_SHOW_SQL: "false"
     depends_on:
       postgres:
