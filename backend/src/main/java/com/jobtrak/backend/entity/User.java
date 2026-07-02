@@ -44,6 +44,18 @@ public class User {
 		this.createdAt = Instant.now();
 	}
 
+	public void updateName(String name) {
+		this.name = name;
+	}
+
+	public void updateEmail(String email) {
+		this.email = email;
+	}
+
+	public void updatePasswordHash(String passwordHash) {
+		this.passwordHash = passwordHash;
+	}
+
 	public Long getId() {
 		return id;
 	}
@@ -63,4 +75,5 @@ public class User {
 	public Instant getCreatedAt() {
 		return createdAt;
 	}
+
 }

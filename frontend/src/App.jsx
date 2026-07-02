@@ -4,9 +4,13 @@ import { useAuth } from './hooks/useAuth.js'
 import AiAnalysisPage from './pages/AiAnalysisPage.jsx'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ResumesPage from './pages/ResumesPage.jsx'
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx'
+import SettingsPage from './pages/SettingsPage.jsx'
 import SignupPage from './pages/SignupPage.jsx'
+import VerifyEmailPage from './pages/VerifyEmailPage.jsx'
 import './App.css'
 
 function ProtectedRoute({ children }) {
@@ -59,6 +63,23 @@ function App() {
           }
         />
         <Route
+          path="/forgot-password"
+          element={
+            <PublicOnlyRoute>
+              <ForgotPasswordPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicOnlyRoute>
+              <ResetPasswordPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -87,6 +108,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AiAnalysisPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

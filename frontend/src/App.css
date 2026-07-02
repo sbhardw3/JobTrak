@@ -109,6 +109,16 @@
   padding: 10px 12px;
 }
 
+.form-success {
+  border: 1px solid var(--success-border);
+  border-radius: 10px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
 .primary-button,
 .secondary-button,
 .danger-button,
@@ -165,11 +175,17 @@
 }
 
 .auth-switch a,
+.auth-meta-link,
 .dashboard-grid a,
 .application-item a {
   color: var(--accent);
   font-weight: 800;
   text-decoration: none;
+}
+
+.auth-meta-link {
+  justify-self: end;
+  margin-top: -6px;
 }
 
 .app-shell {
@@ -2080,6 +2096,7 @@
 }
 
 .account-panel button,
+.account-panel a,
 .action-menu button {
   background: transparent;
   border: 0;
@@ -2090,6 +2107,7 @@
   font-weight: 800;
   padding: 10px;
   text-align: left;
+  text-decoration: none;
 }
 
 .account-panel button {
@@ -2098,6 +2116,7 @@
 }
 
 .account-panel button:hover,
+.account-panel a:hover,
 .action-menu button:hover {
   background: var(--surface-2);
 }
@@ -2296,6 +2315,54 @@
   min-width: 92px;
 }
 
+.settings-layout {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 26px auto 0;
+  max-width: 1120px;
+}
+
+.settings-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(129, 140, 166, 0.22);
+  border-radius: 18px;
+  box-shadow: rgba(16, 24, 40, 0.06) 0 14px 32px;
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.flat-form {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  position: static;
+}
+
+.current-email-box {
+  background: var(--surface-2);
+  border: 1px solid rgba(129, 140, 166, 0.22);
+  border-radius: 14px;
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+}
+
+.current-email-box small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.current-email-box strong {
+  color: var(--text-h);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1120px) {
   .dashboard-command {
     grid-template-columns: 1fr;
@@ -2319,5 +2386,9 @@
   .dashboard-recent-item .status-tag {
     grid-column: 1 / -1;
     justify-self: start;
+  }
+
+  .settings-layout {
+    grid-template-columns: 1fr;
   }
 }

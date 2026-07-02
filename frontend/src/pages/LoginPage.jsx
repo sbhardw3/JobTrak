@@ -65,6 +65,10 @@ function LoginPage() {
             />
           </label>
 
+          <Link className="auth-meta-link" to="/forgot-password">
+            Forgot password?
+          </Link>
+
           {error && <p className="form-error">{error}</p>}
 
           <button className="primary-button" disabled={submitting} type="submit">

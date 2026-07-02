@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { getCurrentUser, loginUser, signupUser } from '../api/authApi.js'
 import { TOKEN_STORAGE_KEY } from '../api/apiClient.js'
 import { AuthContext } from './authContext.js'
@@ -42,6 +42,12 @@ export function AuthProvider({ children }) {
     }
   }, [token])
 
+  const saveSession = useCallback((response) => {
+    localStorage.setItem(TOKEN_STORAGE_KEY, response.token)
+    setToken(response.token)
+    setUser(response.user)
+  }, [])
+
   async function signup(payload) {
     const response = await signupUser(payload)
     saveSession(response)
@@ -54,10 +60,10 @@ export function AuthProvider({ children }) {
     return response
   }
 
-  function saveSession(response) {
-    localStorage.setItem(TOKEN_STORAGE_KEY, response.token)
-    setToken(response.token)
-    setUser(response.user)
+  async function refreshUser() {
+    const currentUser = await getCurrentUser()
+    setUser(currentUser)
+    return currentUser
   }
 
   function logout() {
@@ -73,6 +79,8 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(token && user),
     signup,
     login,
+    saveSession,
+    refreshUser,
     logout,
   }
 

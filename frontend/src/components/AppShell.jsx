@@ -43,6 +43,7 @@ function AppShell({ eyebrow, title, children }) {
               <small>Signed in as</small>
               <strong>{user?.name}</strong>
               <span>{user?.email}</span>
+              <NavLink to="/settings">Settings</NavLink>
               <button onClick={logout} type="button">
                 Log out
               </button>
