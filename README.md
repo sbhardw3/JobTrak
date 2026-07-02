@@ -602,12 +602,10 @@ npm run build
 
 ---
 
-## Planned Improvements
 
-### Cloud Deployment
+### Possible Future Cloud Deployment
 
-Planned deployment target:
-
+ 
 * Frontend: Vercel
 * Backend: Render
 * Database: Neon PostgreSQL
